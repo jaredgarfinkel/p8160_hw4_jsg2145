@@ -41,11 +41,22 @@ acui <- data.frame(str = c(rep(0,20),
 ```
 
 ```{r}
-teststat <- function(x, y) {
+one_sui_red = acui %>% 
+  filter(str == 1) %>% 
+  dplyr::select(red)
+
+one_sui_blue = acui %>% 
+  filter(str == 1) %>% 
+  dplyr::select(blue) %>% 
+  as.tibble()
+```
+
+```{r}
+teststat <- function(x = pull(one_sui_red, red), y = pull(one_sui_blue, blue)) {
   return((mean(y) - mean(x))/(var(x)/length(x) + var(y)/length(y)))
 }
 
-boottest <- function(x, y, nboot = 200) {
+boottest <- function(x = pull(one_sui_red, red), y = pull(one_sui_blue, blue), nboot = 200) {
   combmean <- mean(c(x, y))
   # The mean of the combined sample
   teststatvec <- rep(NA, nboot)
@@ -62,56 +73,39 @@ boottest <- function(x, y, nboot = 200) {
 }
 ```
 
-```{r}
-one_sui_red = acui %>% 
-  filter(str == 1) %>% 
-  dplyr::select(red)
 
-one_sui_blue = acui %>% 
-  filter(str == 1) %>% 
-  dplyr::select(blue)
-```
 
-```{r}
-teststat(blue, red)
+```{r, warning = TRUE}
+teststat()
 
-boottest(blue, red)
+boottest()
 ```
 
 ```{r}
 paired_sample_df = acui %>% 
   filter(str == 0) %>% 
-  mutate(id = row_number())
-
-paired_sample_df$d = rep(NA, 20)
-
-for (i in 1:nrow(paired_sample_df)) {
-  paired_sample_df$d[i] = paired_sample_df$red * (paired_sample_df$id == i) - paired_sample_df$blue * (paired_sample_df$id == i)
-}
+  mutate(diff = red - blue) %>%
+  as.tibble()
 ```
 
 ```{r}
-teststat_paired <- function(df) {
-  numerator = mean(df)
+teststat_paired <- function(x = pull(paired_sample_df, diff)) {
+    return(mean(x)/(sqrt(var(x)/length(x))))
 }
 
-boottest_paired <- function(df, nboot=200) {
-  combmean_paired <- NULL
-  for (i in 1:nboot){
-    combmean[i] = mean(df[i])
-  # The mean of the combined sample
+teststat_paired()
+
+boottest_paired <- function(diff = pull(paired_sample_df, diff), nboot=200) {
   teststatvec <- rep(NA, nboot)
-  adjx <- x - mean(x) + combmean
-  # The adjusted X’s will have mean=combmean
-  adjy <- y - mean(y) + combmean
-  # The adjusted X’s will have mean=combmean
-  for(b in 1:nboot) {
-    teststatvec[b] <- teststat(sample(adjx, replace=T),
-                               sample(adjy, replace=T))
+  adjdiff <- diff - mean(diff)
+  for (b in 1:nboot) {
+    teststatvec[b] <- teststat_paired(sample(adjdiff, replace = TRUE))
   }
-  return(list(bootpval = sum(teststat(x,y) < teststatvec)/nboot, 
+  return(list(bootpval = sum(teststat_paired(diff) < teststatvec)/nboot, 
               teststatvec = teststatvec))
 }
+
+boottest_paired()
 ```
 
 ```{r}
