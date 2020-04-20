@@ -9,6 +9,7 @@ output: github_document
 library(tidyverse)
 library(viridis)
 library(MASS)
+library(parallel)
 knitr::opts_chunk$set(
 	echo = TRUE,
 	warning = FALSE,
@@ -89,12 +90,12 @@ paired_sample_df = acui %>%
 ```
 
 ```{r}
+set.seed(22)
 teststat_paired <- function(x = pull(paired_sample_df, diff)) {
     return(mean(x)/(sqrt(var(x)/length(x))))
 }
 
-teststat_paired()
-
+set.seed(22)
 boottest_paired <- function(diff = pull(paired_sample_df, diff), nboot=200) {
   teststatvec <- rep(NA, nboot)
   adjdiff <- diff - mean(diff)
@@ -105,14 +106,51 @@ boottest_paired <- function(diff = pull(paired_sample_df, diff), nboot=200) {
               teststatvec = teststatvec))
 }
 
+set.seed(22)
 boottest_paired()
 ```
+
+
+The p-value for the paired samples is `r boottest_paired()$bootpval %>% round(4)` and the p-value for the two-sample data is `r boottest()$bootpval %>% round(4)`, which are both greater than 0.05 (>0.05), indicating that there is not evidence to suggest a difference.
+
+## in parallel
+
+```{r}
+set.seed(22)
+nCores <- detectCores() # detect numbers of available cores 
+cl = makeCluster(nCores)
+system.time({
+res2 = boottest_paired()
+})
+stopCluster(cl)
+```
+
 
 ```{r}
 data(galaxies)
 plot(density(galaxies/1000, bw=1.5))
 plot(density(galaxies/1000, bw=3.5))
 ```
+
+```{r}
+#calculate the number of modes in the density
+den <- density(galaxies/1000, bw=1.5)
+den.s <- smooth.spline(den$x, den$y, all.knots = TRUE, spar = 0.8)
+s.1 <- predict(den.s, den.s$x, deriv=1)
+nmodes <- length(rle(den.sign <- sign(s.1$y))$values)/2
+```
+
+```{r}
+gal <- galaxies/1000
+c(width.SJ(gal, method = "dpi"), width.SJ(gal))
+plot(x = c(0, 40), y = c(0, 0.3), type = "n", bty = "l",
+xlab = "velocity of galaxy (1000km/s)", ylab = "density")
+rug(gal)
+lines(density(gal, width = 3.25, n = 200), lty = 1)
+lines(density(gal, width = 2.56, n = 200), lty = 3)
+```
+
+
 
 
 
