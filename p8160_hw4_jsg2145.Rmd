@@ -1,0 +1,124 @@
+---
+title: "p8160_hw4_jsg2145"
+author: "Jared Garfinkel"
+date: "4/19/2020"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(viridis)
+library(MASS)
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+```
+
+```{r}
+blue <- c(4,69,87,35,39,79,31,79,65,95,68,
+          62,70,80,84,79,66,75,59,77,36,86,
+          39,85,74,72,69,85,85,72)
+
+red <- c(62,80,82,83,0,81,28,69,48,90,63,
+        77,0,55,83,85,54,72,58,68,88,83,78,
+        30,58,45,78,64,87,65)
+
+acui <- data.frame(str = c(rep(0,20),
+                       rep(1,10)),
+                 red,
+                 blue)
+```
+
+```{r}
+teststat <- function(x, y) {
+  return((mean(y) - mean(x))/(var(x)/length(x) + var(y)/length(y)))
+}
+
+boottest <- function(x, y, nboot = 200) {
+  combmean <- mean(c(x, y))
+  # The mean of the combined sample
+  teststatvec <- rep(NA, nboot)
+  adjx <- x - mean(x) + combmean
+  # The adjusted X’s will have mean=combmean
+  adjy <- y - mean(y) + combmean
+  # The adjusted X’s will have mean=combmean
+  for(b in 1:nboot) {
+    teststatvec[b] <- teststat(sample(adjx, replace=T),
+                               sample(adjy, replace=T))
+  }
+  return(list(bootpval = sum(teststat(x, y) < teststatvec)/nboot, 
+              teststatvec = teststatvec))
+}
+```
+
+```{r}
+one_sui_red = acui %>% 
+  filter(str == 1) %>% 
+  dplyr::select(red)
+
+one_sui_blue = acui %>% 
+  filter(str == 1) %>% 
+  dplyr::select(blue)
+```
+
+```{r}
+teststat(blue, red)
+
+boottest(blue, red)
+```
+
+```{r}
+paired_sample_df = acui %>% 
+  filter(str == 0) %>% 
+  mutate(id = row_number())
+
+paired_sample_df$d = rep(NA, 20)
+
+for (i in 1:nrow(paired_sample_df)) {
+  paired_sample_df$d[i] = paired_sample_df$red * (paired_sample_df$id == i) - paired_sample_df$blue * (paired_sample_df$id == i)
+}
+```
+
+```{r}
+teststat_paired <- function(df) {
+  numerator = mean(df)
+}
+
+boottest_paired <- function(df, nboot=200) {
+  combmean_paired <- NULL
+  for (i in 1:nboot){
+    combmean[i] = mean(df[i])
+  # The mean of the combined sample
+  teststatvec <- rep(NA, nboot)
+  adjx <- x - mean(x) + combmean
+  # The adjusted X’s will have mean=combmean
+  adjy <- y - mean(y) + combmean
+  # The adjusted X’s will have mean=combmean
+  for(b in 1:nboot) {
+    teststatvec[b] <- teststat(sample(adjx, replace=T),
+                               sample(adjy, replace=T))
+  }
+  return(list(bootpval = sum(teststat(x,y) < teststatvec)/nboot, 
+              teststatvec = teststatvec))
+}
+```
+
+```{r}
+data(galaxies)
+plot(density(galaxies/1000, bw=1.5))
+plot(density(galaxies/1000, bw=3.5))
+```
+
+
+
