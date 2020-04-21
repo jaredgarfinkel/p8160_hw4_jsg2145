@@ -119,6 +119,7 @@ The p-value for the paired samples is `r boottest_paired()$bootpval %>% round(4)
 set.seed(22)
 nCores <- detectCores() # detect numbers of available cores 
 cl = makeCluster(nCores)
+cl
 system.time({
 res2 = boottest_paired()
 })
