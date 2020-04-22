@@ -10,6 +10,7 @@ library(tidyverse)
 library(viridis)
 library(MASS)
 library(parallel)
+library(boot)
 knitr::opts_chunk$set(
 	echo = TRUE,
 	warning = FALSE,
@@ -126,6 +127,7 @@ res2 = boottest_paired()
 stopCluster(cl)
 ```
 
+## Problem 2
 
 ```{r}
 data(galaxies)
@@ -142,13 +144,21 @@ nmodes <- length(rle(den.sign <- sign(s.1$y))$values)/2
 ```
 
 ```{r}
-gal <- galaxies/1000
-c(width.SJ(gal, method = "dpi"), width.SJ(gal))
-plot(x = c(0, 40), y = c(0, 0.3), type = "n", bty = "l",
-xlab = "velocity of galaxy (1000km/s)", ylab = "density")
-rug(gal)
-lines(density(gal, width = 3.25, n = 200), lty = 1)
-lines(density(gal, width = 2.56, n = 200), lty = 3)
+norm_dens = function(x = galaxies) {
+    exp(-.5*x^2)/sqrt(2*pi)
+}
+
+h = (4 * min(sd(galaxies), IQR(galaxies))/(3*200))^(1/5)
+
+
+min_ban = function(x = galaxies, nboot = 200) {
+  den = sample(x, size = nboot, replace = TRUE)
+  kernel = mean(norm_dens((den - x)/h)/h)
+}
+
+kpdf = function(x = galaxies) {
+  sapply(x, min_ban)
+}
 ```
 
 
