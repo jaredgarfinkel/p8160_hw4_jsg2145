@@ -42,6 +42,8 @@ acui <- data.frame(str = c(rep(0,20),
                  blue)
 ```
 
+## Part 1i
+
 ```{r}
 one_sui_red = acui %>% 
   filter(str == 1) %>% 
@@ -144,7 +146,7 @@ nmodes <- length(rle(den.sign <- sign(s.1$y))$values)/2
 ```
 
 ```{r}
-norm_dens = function(x = galaxies) {
+unif_dens = function(x = galaxies) {
     exp(-.5*x^2)/sqrt(2*pi)
 }
 
