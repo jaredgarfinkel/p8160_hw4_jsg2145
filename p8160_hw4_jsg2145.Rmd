@@ -113,6 +113,15 @@ set.seed(22)
 boottest_paired()
 ```
 
+## Problem 1b
+
+```{r}
+treffect_upper = qnorm(.975, mean = mean(sample(paired_sample_df$diff, size = length(paired_sample_df$diff), replace = TRUE)))
+treffect_lower = qnorm(.025, mean = mean(sample(paired_sample_df$diff, size = length(paired_sample_df$diff), replace = TRUE)))
+
+c(treffect_lower, treffect_upper)
+```
+
 
 The p-value for the paired samples is `r boottest_paired()$bootpval %>% round(4)` and the p-value for the two-sample data is `r boottest()$bootpval %>% round(4)`, which are both greater than 0.05 (>0.05), indicating that there is not evidence to suggest a difference.
 
@@ -164,7 +173,7 @@ for (i in 1:82) {
 h = (4 * min(sd(data), IQR(data))/(3*200))^(1/5)
 
 kernel = function(x) {
-  mean(((x - data)/h))/h
+  mean(unif_dens((x - data)/h))/h
 }
 
 kernel(x)
@@ -175,8 +184,8 @@ kpdf = function(x) {
 
 kpdf(x)
 
-plot(galaxies, type="l", ylim=c(min(galaxies)-2000, max(galaxies) + 2000), col="red") 
+plot(x,unif_dens(x), type="l", col="red") 
 par(new=T)
-plot(kpdf(x),type="l",ylim=c(0,0.23),xlab="",ylab="",axes=F)
+plot(x,kpdf(x),type="l",ylim=c(0,0.23),xlab="",ylab="",axes=F)
 ```
 
