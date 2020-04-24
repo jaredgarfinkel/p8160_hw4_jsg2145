@@ -125,6 +125,8 @@ c(treffect_lower, treffect_upper)
 
 The p-value for the paired samples is `r boottest_paired()$bootpval %>% round(4)` and the p-value for the two-sample data is `r boottest()$bootpval %>% round(4)`, which are both greater than 0.05 (>0.05), indicating that there is not evidence to suggest a difference.
 
+The confidence interval is (`r treffect_lower %>% round(3)`, `r treffect_upper %>% round(3)`), which is not what would be expected based on the p-values.
+
 ## in parallel
 
 ```{r}
