@@ -116,16 +116,24 @@ boottest_paired()
 ## Problem 1b
 
 ```{r}
-treffect_upper = qnorm(.975, mean = mean(sample(paired_sample_df$diff, size = length(paired_sample_df$diff), replace = TRUE)))
-treffect_lower = qnorm(.025, mean = mean(sample(paired_sample_df$diff, size = length(paired_sample_df$diff), replace = TRUE)))
+np = function (size = 200, func) {
+  boottest_boot = func()$teststatvec %>% 
+    sample(size = 200, replace = TRUE)
+  n = sum(boottest_boot > func()$bootpval)
+  np = n/size
+  return(np)
+}
 
-c(treffect_lower, treffect_upper)
+treffect_lower_paired = qnorm(.025, mean = mean(sample(paired_sample_df$diff, size = length(paired_sample_df$diff), replace = TRUE)))
+treffect_upper_paired = qnorm(.025, mean = mean(sample(paired_sample_df$diff, size = length(paired_sample_df$diff), replace = TRUE)))
+
+c(treffect_lower_paired, treffect_upper_paired)
 ```
 
 
-The p-value for the paired samples is `r boottest_paired()$bootpval %>% round(4)` and the p-value for the two-sample data is `r boottest()$bootpval %>% round(4)`, which are both greater than 0.05 (>0.05), indicating that there is not evidence to suggest a difference.
+The p-value for the paired samples is `r np(func = boottest_paired)` and the p-value for the two-sample data is `r np(func = boottest)`, which shows a difference for different types of patients.
 
-The confidence interval is (`r treffect_lower %>% round(3)`, `r treffect_upper %>% round(3)`), which is not what would be expected based on the p-values.
+The confidence interval for the effect size in paired data is (`r treffect_lower_paired %>% round(3)`, `r treffect_upper_paired %>% round(3)`), which is not what would be expected based on the p-values.
 
 ## in parallel
 
